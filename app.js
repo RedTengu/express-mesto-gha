@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const router = require('./routes');
+const { ERROR_404 } = require('./errors/errors');
 
 const app = express();
 
@@ -22,6 +23,12 @@ app.use((req, res, next) => {
 });
 
 app.use(router);
+
+app.use((req, res) => {
+  res.status(ERROR_404).send({
+    message: 'Маршрут не существует!',
+  });
+});
 
 app.listen(PORT, () => {
   console.log('Я запущен!');
