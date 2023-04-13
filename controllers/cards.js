@@ -38,8 +38,38 @@ const deleteCard = (req, res) => {
     })
 };
 
+const likeCard = (req, res) => {
+  const { cardId } = req.params;
+  const ownerId = req.user._id;
+
+  Card.findByIdAndUpdate(cardId, { $addToSet: { likes: req.user._id } }, { new: true })
+    .then(card => {
+      res.send(card);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(400).send(err.message);
+    })
+};
+
+const dislikeCard = (req, res) => {
+  const { cardId } = req.params;
+  const ownerId = req.user._id;
+
+  Card.findByIdAndUpdate(cardId, { $pull: { likes: ownerId } }, { new: true })
+    .then(card => {
+      res.send(card);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(400).send(err.message);
+    })
+};
+
 module.exports = {
   getCards,
   createCard,
-  deleteCard
+  deleteCard,
+  likeCard,
+  dislikeCard
 };
