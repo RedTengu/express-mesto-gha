@@ -2,6 +2,15 @@ const Card = require('../models/card');
 
 const { ERROR_400, ERROR_404, ERROR_500 } = require('../errors/errors');
 
+const check = (card, res) => {
+  if (card) {
+    return res.send(card);
+  }
+  return res
+    .status(ERROR_NOT_FOUND)
+    .send({ message: 'Передан несуществующий _id карточки.' });
+};
+
 const getCards = (req, res) => {
   Card.find({})
     .then((cards) => {
@@ -51,7 +60,7 @@ const likeCard = (req, res) => {
 
   Card.findByIdAndUpdate(cardId, { $addToSet: { likes: ownerId } }, { new: true })
     .then((card) => {
-      res.send(card);
+      check(card, res);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -69,7 +78,7 @@ const dislikeCard = (req, res) => {
 
   Card.findByIdAndUpdate(cardId, { $pull: { likes: ownerId } }, { new: true })
     .then((card) => {
-      res.send(card);
+      check(card, res);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
