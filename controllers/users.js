@@ -2,6 +2,13 @@ const User = require('../models/user');
 
 const { ERROR_400, ERROR_404, ERROR_500 } = require('../errors/errors');
 
+const check = (user, res) => {
+  if (user) {
+    return res.send(user);
+  }
+  return res.status(ERROR_404).send({ message: 'Пользователь c указанным _id не найден.' });
+};
+
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send(users))
@@ -12,11 +19,11 @@ const getUserById = (req, res) => {
   const { userId } = req.params;
 
   User.findById(userId)
-    .then((user) => res.send(user))
+    .then((user) => check(user, res))
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(ERROR_404).send({
-          message: 'Пользователь по указанному _id не найден.',
+        return res.status(ERROR_400).send({
+          message: 'Некорректный id.',
         });
       }
       return res.status(ERROR_500).send({ message: 'Произошла ошибка!' });
