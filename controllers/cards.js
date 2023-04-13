@@ -1,10 +1,22 @@
 const Card = require('../models/card');
 
-const createCard = (req, res) => {
-  const { name, link, owner, likes, createdAt} = req.body;
+const getCards = (req, res) => {
+  Card.find({})
+    .then(cards => {
+      res.send(cards);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).send(err.message);
+    })
+};
 
-  Card.create({ name, link, owner, likes, createdAt })
-    .then((newCard) => {
+const createCard = (req, res) => {
+  const { name, link } = req.body;
+  const { _id } = req.user;
+
+  Card.create({ name, link, owner: _id })
+    .then(newCard => {
       res.send(newCard);
     })
     .catch(err => {
@@ -13,6 +25,21 @@ const createCard = (req, res) => {
     })
 };
 
+const deleteCard = (req, res) => {
+  const { cardId } = req.params;
+
+  Card.findByIdAndRemove(cardId)
+    .then(card => {
+      res.send(card);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(400).send(err.message);
+    })
+};
+
 module.exports = {
-  createCard
+  getCards,
+  createCard,
+  deleteCard
 };
