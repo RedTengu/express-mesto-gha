@@ -1,5 +1,29 @@
 const User = require('../models/user');
 
+const getUsers = (req, res) => {
+  User.find({})
+    .then(users => {
+      res.send(users);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).send(err.message);
+    })
+};
+
+const getUserById = (req, res) => {
+  const { userId } = req.params;
+
+  User.findById(userId)
+    .then(user => {
+      res.send(user);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(400).send(err.message);
+    })
+};
+
 const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
@@ -14,5 +38,7 @@ const createUser = (req, res) => {
 };
 
 module.exports = {
+  getUsers,
+  getUserById,
   createUser
 };
