@@ -2,13 +2,11 @@ const Card = require('../models/card');
 
 const { ERROR_400, ERROR_404, ERROR_500 } = require('../errors/errors');
 
-const check = (card, res) => {
+const cardCheck = (card, res) => {
   if (card) {
     return res.send(card);
   }
-  return res
-    .status(ERROR_NOT_FOUND)
-    .send({ message: 'Передан несуществующий _id карточки.' });
+  return res.status(ERROR_404).send({ message: 'Карточка с указанным _id не найдена.' });
 };
 
 const getCards = (req, res) => {
@@ -41,13 +39,13 @@ const deleteCard = (req, res) => {
   const { cardId } = req.params;
 
   Card.findByIdAndRemove(cardId)
-    .then(() => {
-      res.send({ message: 'Карточка успешно удалена!' });
+    .then((card) => {
+      checkCard(card, res);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(ERROR_404).send({
-          message: 'Карточка по указанному _id не найдена.',
+        return res.status(ERROR_400).send({
+          message: 'Некорректный _id.',
         });
       }
       return res.status(ERROR_500).send({ message: 'Произошла ошибка!' });
@@ -60,12 +58,12 @@ const likeCard = (req, res) => {
 
   Card.findByIdAndUpdate(cardId, { $addToSet: { likes: ownerId } }, { new: true })
     .then((card) => {
-      check(card, res);
+      cardCheck(card, res);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(ERROR_404).send({
-          message: 'Данный id не найден!',
+        return res.status(ERROR_400).send({
+          message: 'Переданы некорректные данные для постановки лайка.',
         });
       }
       return res.status(ERROR_500).send({ message: 'Произошла ошибка!' });
@@ -78,12 +76,12 @@ const dislikeCard = (req, res) => {
 
   Card.findByIdAndUpdate(cardId, { $pull: { likes: ownerId } }, { new: true })
     .then((card) => {
-      check(card, res);
+      cardCheck(card, res);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(ERROR_404).send({
-          message: 'Данный id не найден!',
+        return res.status(ERROR_400).send({
+          message: 'Переданы некорректные данные для cнятия лайка.',
         });
       }
       return res.status(ERROR_500).send({ message: 'Произошла ошибка!' });
