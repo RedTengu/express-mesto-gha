@@ -22,7 +22,6 @@ const getUserById = (req, res) => {
     .then((user) => userCheck(user, res))
     .catch((err) => {
       if (err.name === 'CastError') {
-        console.log(err)
         return res.status(ERROR_400).send({
           message: 'Некорректный _id.',
         });
