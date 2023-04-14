@@ -38,9 +38,11 @@ const createCard = (req, res) => {
 const deleteCard = (req, res) => {
   const { cardId } = req.params;
 
-  Card.findByIdAndRemove(cardId)
+  Card.deleteOne({ _id: cardId })
     .then((card) => {
-      checkCard(card, res);
+      if (card.deletedCount === 0) {
+        return res.status(ERROR_404).send({ message: 'Карточка с указанным _id не найдена.' });
+      }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
