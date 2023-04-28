@@ -19,7 +19,7 @@ const getCards = (req, res) => {
 
 const createCard = (req, res) => {
   const { name, link } = req.body;
-  const { _id } = req.user._id;
+  const { _id } = req.user;
 
   Card.create({ name, link, owner: _id })
     .then((newCard) => {
