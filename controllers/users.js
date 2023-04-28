@@ -12,6 +12,12 @@ const userCheck = (user, res) => {
   return res.status(ERROR_404).send({ message: 'Пользователь по указанному _id не найден.' });
 };
 
+const getCurrentUser = (req, res) => {
+  User.findById(req.user._id)
+    .then(user => res.send(user))
+    .catch(() => res.status(ERROR_500).send({ message: 'Произошла ошибка!' }));
+}
+
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send(users))
@@ -107,6 +113,7 @@ const editAvatar = (req, res) => {
 };
 
 module.exports = {
+  getCurrentUser,
   getUsers,
   getUserById,
   createUser,
