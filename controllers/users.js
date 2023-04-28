@@ -1,4 +1,6 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
 const User = require('../models/user');
 
 const { ERROR_400, ERROR_404, ERROR_500 } = require('../errors/errors');
@@ -49,6 +51,29 @@ const createUser = (req, res) => {
     });
 };
 
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        res.send('Ошибка! Неверный email или пароль.') // Выбросить централизованную ошибку
+      }
+
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            res.send('Ошибка! Неверный email или пароль.') // Выбросить централизованную ошибку
+          }
+
+          const token = jwt.sign({ _id: user._id }, 'secret-key', { expiresIn: '7d' });
+
+          return res.send({ token });
+        })
+        .catch((err) => res.status(401).send({ message: err.message }));
+    })
+}
+
 const editUser = (req, res) => {
   const { name, about } = req.body;
   const ownerId = req.user._id;
@@ -85,6 +110,7 @@ module.exports = {
   getUsers,
   getUserById,
   createUser,
+  login,
   editUser,
   editAvatar,
 };
