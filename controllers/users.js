@@ -60,7 +60,7 @@ const createUser = (req, res) => {
 const login = (req, res) => {
   const { email, password } = req.body;
 
-  User.findOne({ email })
+  User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         res.send('Ошибка! Неверный email или пароль.') // Выбросить централизованную ошибку
