@@ -3,43 +3,39 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 
-const { ERROR_400, ERROR_404, ERROR_500 } = require('../errors/errors');
+const NotFound = require('../errors/notFoundError');
+const Unauthorized = require('../errors/unauthorizedError');
+const BadRequest = require('../errors/badRequestError');
+const Conflict = require('../errors/conflictError');
 
 const userCheck = (user, res) => {
   if (user) {
     return res.send(user);
   }
-  return res.status(ERROR_404).send({ message: 'Пользователь по указанному _id не найден.' });
+  throw new NotFound('Пользователь по указанному _id не найден.');
 };
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then(user => res.send(user))
-    .catch(() => res.status(ERROR_500).send({ message: 'Произошла ошибка!' }));
+    .catch(next);
 }
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch(() => res.status(ERROR_500).send({ message: 'Произошла ошибка!' }));
+    .catch(next);
 };
 
-const getUserById = (req, res) => {
+const getUserById = (req, res, next) => {
   const { userId } = req.params;
 
   User.findById(userId)
     .then((user) => userCheck(user, res))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res.status(ERROR_400).send({
-          message: 'Некорректный _id.',
-        });
-      }
-      return res.status(ERROR_500).send({ message: 'Произошла ошибка!' });
-    });
+    .catch(next);
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { email, password, name, about, avatar } = req.body;
 
   bcrypt.hash(password, 10)
@@ -47,53 +43,43 @@ const createUser = (req, res) => {
       User.create({ email, password: hash, name, about, avatar })
         .then((newUser) => res.send(newUser))
         .catch((err) => {
-          if (err.name === 'ValidationError') {
-            return res.status(ERROR_400).send({
-              message: 'Переданы некорректные данные при создании пользователя.',
-            });
+          if (err.code === 11000) {
+            next(new Conflict('Пользователь с таким email уже существует!'))
           }
-          return res.status(ERROR_500).send({ message: 'Произошла ошибка!' });
         });
     });
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        res.send('Ошибка! Неверный email или пароль.') // Выбросить централизованную ошибку
+        throw new Unauthorized('Ошибка! Неверный email или пароль.');
       }
 
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            res.send('Ошибка! Неверный email или пароль.') // Выбросить централизованную ошибку
+            throw new Unauthorized('Ошибка! Неверный email или пароль.');
           }
 
           const token = jwt.sign({ _id: user._id }, 'secret-key', { expiresIn: '7d' });
 
           return res.send({ token });
-        })
-        .catch((err) => res.status(401).send({ message: err.message }));
+        });
     })
-}
+    .catch(next);
+};
 
-const editUser = (req, res) => {
+const editUser = (req, res, next) => {
   const { name, about } = req.body;
   const ownerId = req.user._id;
 
   User.findByIdAndUpdate(ownerId, { name, about }, { new: true, runValidators: true })
     .then((user) => userCheck(user, res))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res.status(ERROR_400).send({
-          message: 'Переданы некорректные данные при обновлении профиля.',
-        });
-      }
-      return res.status(ERROR_500).send({ message: 'Произошла ошибка!' });
-    });
+    .catch(next);
 };
 
 const editAvatar = (req, res) => {
@@ -102,14 +88,7 @@ const editAvatar = (req, res) => {
 
   User.findByIdAndUpdate(ownerId, avatar, { new: true, runValidators: true })
     .then((user) => userCheck(user, res))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res.status(ERROR_400).send({
-          message: 'Переданы некорректные данные при обновлении аватара.',
-        });
-      }
-      return res.status(ERROR_500).send({ message: 'Произошла ошибка!' });
-    });
+    .catch(next);
 };
 
 module.exports = {

@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const router = require('./routes');
-const { ERROR_404 } = require('./errors/errors');
 
 const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
@@ -28,6 +27,18 @@ app.use((req, res) => {
   res.status(ERROR_404).send({
     message: 'Маршрут не существует!',
   });
+});
+
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+
+  res.status(statusCode).send({
+    message: statusCode === 500
+      ? 'На сервере произошла ошибка'
+      : message
+  });
+
+  next();
 });
 
 app.listen(PORT, () => {

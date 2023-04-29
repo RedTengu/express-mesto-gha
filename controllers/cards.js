@@ -1,7 +1,5 @@
 const Card = require('../models/card');
 
-const { ERROR_400, ERROR_404, ERROR_500 } = require('../errors/errors');
-
 const cardCheck = (card, res) => {
   if (card) {
     return res.send(card);
