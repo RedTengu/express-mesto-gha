@@ -16,9 +16,9 @@ const userCheck = (user, res) => {
 
 const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
-    .then(user => res.send(user))
+    .then((user) => res.send(user))
     .catch(next);
-}
+};
 
 const getUsers = (req, res, next) => {
   User.find({})
@@ -35,20 +35,24 @@ const getUserById = (req, res, next) => {
 };
 
 const createUser = (req, res, next) => {
-  const { email, password, name, about, avatar } = req.body;
+  const {
+    email, password, name, about, avatar,
+  } = req.body;
 
   bcrypt.hash(password, 10)
     .then((hash) => {
-      User.create({ email, password: hash, name, about, avatar })
+      User.create({
+        email, password: hash, name, about, avatar,
+      })
         .then((newUser) => res.send({
           email: newUser.email,
           name: newUser.name,
           about: newUser.about,
-          avatar: newUser.avatar
+          avatar: newUser.avatar,
         }))
         .catch((err) => {
           if (err.code === 11000) {
-            next(new Conflict('Пользователь с таким email уже существует!'))
+            next(new Conflict('Пользователь с таким email уже существует!'));
           }
         });
     });

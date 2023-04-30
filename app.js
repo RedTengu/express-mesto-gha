@@ -8,7 +8,7 @@ const { errors, celebrate } = require('celebrate');
 const router = require('./routes');
 
 const { createUser, login } = require('./controllers/users');
-const { registerValidation, loginValidation } = require('./middlewares/validation')
+const { registerValidation, loginValidation } = require('./middlewares/validation');
 const auth = require('./middlewares/auth');
 
 const NotFound = require('./errors/notFoundError');
@@ -31,17 +31,17 @@ app.use(router);
 
 app.use(errors());
 
-app.use((req, res) => {
+app.use(() => {
   throw new NotFound('Маршрут не существует');
 });
 
-app.use((err, req, res, next) => {
+app.use((err, res, next) => {
   const { statusCode = 500, message } = err;
 
   res.status(statusCode).send({
     message: statusCode === 500
       ? 'На сервере произошла ошибка'
-      : message
+      : message,
   });
 
   next();

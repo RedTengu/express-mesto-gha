@@ -9,7 +9,7 @@ module.exports = (req, res, next) => {
   Card.findById({ _id: cardId })
     .then((card) => {
       if (!card) {
-        throw new NotFound('Карточка с указанным _id не найдена.');;
+        throw new NotFound('Карточка с указанным _id не найдена.');
       }
       if (String(card.owner) !== req.user._id) {
         throw new Forbidden('Чужие карточки удалять нельзя!');
