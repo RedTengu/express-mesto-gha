@@ -11,6 +11,8 @@ const { createUser, login } = require('./controllers/users');
 const { registerValidation, loginValidation } = require('./middlewares/validation')
 const auth = require('./middlewares/auth');
 
+const NotFound = require('./errors/notFoundError');
+
 const app = express();
 
 const { PORT = 3000 } = process.env;
@@ -30,9 +32,7 @@ app.use(router);
 app.use(errors());
 
 app.use((req, res) => {
-  res.status(ERROR_404).send({
-    message: 'Маршрут не существует!',
-  });
+  throw new NotFound('Маршрут не существует');
 });
 
 app.use((err, req, res, next) => {
