@@ -5,7 +5,6 @@ const User = require('../models/user');
 
 const NotFound = require('../errors/notFoundError');
 const Unauthorized = require('../errors/unauthorizedError');
-const BadRequest = require('../errors/badRequestError');
 const Conflict = require('../errors/conflictError');
 
 const userCheck = (user, res) => {
@@ -46,9 +45,6 @@ const createUser = (req, res, next) => {
           if (err.code === 11000) {
             next(new Conflict('Пользователь с таким email уже существует!'))
           }
-          if (err.name === 'ValidationError') {
-            next(new BadRequest('Введены некорректные данные!'))
-          }
         });
     });
 };
@@ -85,9 +81,9 @@ const editUser = (req, res, next) => {
     .catch(next);
 };
 
-const editAvatar = (req, res) => {
-  const avatar = req.body;
+const editAvatar = (req, res, next) => {
   const ownerId = req.user._id;
+  const avatar = req.body;
 
   User.findByIdAndUpdate(ownerId, avatar, { new: true, runValidators: true })
     .then((user) => userCheck(user, res))

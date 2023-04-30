@@ -1,10 +1,14 @@
+// Не дать удалять чужие карточки
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const { errors, celebrate } = require('celebrate');
 
 const router = require('./routes');
 
 const { createUser, login } = require('./controllers/users');
+const { registerValidation, loginValidation } = require('./middlewares/validation')
 const auth = require('./middlewares/auth');
 
 const app = express();
@@ -16,12 +20,14 @@ mongoose.connect('mongodb://localhost:27017/mestodb');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate(loginValidation), login);
+app.post('/signup', celebrate(registerValidation), createUser);
 
 app.use(auth);
 
 app.use(router);
+
+app.use(errors());
 
 app.use((req, res) => {
   res.status(ERROR_404).send({
